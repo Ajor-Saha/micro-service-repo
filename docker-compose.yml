@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Databases
+  student-db:
+    image: postgres:15-alpine
+    container_name: student-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: student_db
+    ports:
+      - "5441:5432"
+    volumes:
+      - student-data:/var/lib/postgresql/data
+    networks:
+      - university-network
+
+  course-db:
+    image: postgres:15-alpine
+    container_name: course-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: course_db
+    ports:
+      - "5442:5432"
+    volumes:
+      - course-data:/var/lib/postgresql/data
+    networks:
+      - university-network
+
+  faculty-db:
+    image: postgres:15-alpine
+    container_name: faculty-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: faculty_db
+    ports:
+      - "5443:5432"
+    volumes:
+      - faculty-data:/var/lib/postgresql/data
+    networks:
+      - university-network
+
+  enrollment-db:
+    image: postgres:15-alpine
+    container_name: enrollment-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: enrollment_db
+    ports:
+      - "5444:5432"
+    volumes:
+      - enrollment-data:/var/lib/postgresql/data
+    networks:
+      - university-network
+
+  # Microservices
+  student-service:
+    build:
+      context: ./services/student-service
+      dockerfile: Dockerfile
+    container_name: student-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@student-db:5432/student_db
+      NODE_ENV: production
+    depends_on:
+      - student-db
+    networks:
+      - university-network
+    restart: unless-stopped
+
+  course-service:
+    build:
+      context: ./services/course-service
+      dockerfile: Dockerfile
+    container_name: course-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:postgres@course-db:5432/course_db
+      NODE_ENV: production
+    depends_on:
+      - course-db
+    networks:
+      - university-network
+    restart: unless-stopped
+
+  faculty-service:
+    build:
+      context: ./services/faculty-service
+      dockerfile: Dockerfile
+    container_name: faculty-service
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      DATABASE_URL: postgresql://postgres:postgres@faculty-db:5432/faculty_db
+      NODE_ENV: production
+    depends_on:
+      - faculty-db
+    networks:
+      - university-network
+    restart: unless-stopped
+
+  enrollment-service:
+    build:
+      context: ./services/enrollment-service
+      dockerfile: Dockerfile
+    container_name: enrollment-service
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+      DATABASE_URL: postgresql://postgres:postgres@enrollment-db:5432/enrollment_db
+      STUDENT_SERVICE_URL: http://student-service:3001
+      COURSE_SERVICE_URL: http://course-service:3002
+      NODE_ENV: production
+    depends_on:
+      - enrollment-db
+      - student-service
+      - course-service
+    networks:
+      - university-network
+    restart: unless-stopped
+
+volumes:
+  student-data:
+  course-data:
+  faculty-data:
+  enrollment-data:
+
+networks:
+  university-network:
+    driver: bridge

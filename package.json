@@ -1,0 +1,22 @@
+{
+  "name": "university-management-system",
+  "version": "1.0.0",
+  "description": "Microservices-based University Management System",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "shared"
+  ],
+  "scripts": {
+    "dev:student": "cd services/student-service && npm run dev",
+    "dev:course": "cd services/course-service && npm run dev",
+    "dev:faculty": "cd services/faculty-service && npm run dev",
+    "dev:enrollment": "cd services/enrollment-service && npm run dev",
+    "build:all": "npm run build --workspaces",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "keywords": ["microservices", "university", "management", "system"],
+  "author": "",
+  "license": "ISC"
+}
