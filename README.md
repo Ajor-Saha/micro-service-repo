@@ -24,14 +24,34 @@ Each service has its own PostgreSQL database to ensure data isolation and indepe
 - **Logging**: Winston
 - **Containerization**: Docker & Docker Compose
 
-## 🚀 Getting Started
+## 🚀 Quick Start with Docker (Recommended)
+
+**Run the entire system with a single command:**
+
+```bash
+./start.sh
+```
+
+Or manually:
+
+```bash
+docker-compose up --build -d
+```
+
+Access the application at **http://localhost:3000**
+
+For detailed Docker instructions, see [DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md)
+
+---
+
+## 📦 Manual Setup (Development)
 
 ### Prerequisites
 
 - Node.js 18+
 - npm or yarn
 - PostgreSQL 15+
-- Docker & Docker Compose (optional)
+- Docker & Docker Compose (for databases only)
 
 ### Installation
 

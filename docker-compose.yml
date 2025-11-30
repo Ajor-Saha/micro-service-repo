@@ -1,6 +1,41 @@
-version: '3.8'
-
 services:
+  # API Gateway (Nginx)
+  api-gateway:
+    image: nginx:alpine
+    container_name: api-gateway
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - student-service
+      - course-service
+      - faculty-service
+      - enrollment-service
+    networks:
+      - frontend-network
+      - backend-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # PostgreSQL Databases
   student-db:
     image: postgres:15-alpine
@@ -9,12 +44,22 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: student_db
-    ports:
-      - "5441:5432"
     volumes:
       - student-data:/var/lib/postgresql/data
     networks:
-      - university-network
+      - student-db-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   course-db:
     image: postgres:15-alpine
@@ -23,12 +68,22 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: course_db
-    ports:
-      - "5442:5432"
     volumes:
       - course-data:/var/lib/postgresql/data
     networks:
-      - university-network
+      - course-db-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   faculty-db:
     image: postgres:15-alpine
@@ -37,12 +92,22 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: faculty_db
-    ports:
-      - "5443:5432"
     volumes:
       - faculty-data:/var/lib/postgresql/data
     networks:
-      - university-network
+      - faculty-db-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   enrollment-db:
     image: postgres:15-alpine
@@ -51,72 +116,125 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: enrollment_db
-    ports:
-      - "5444:5432"
     volumes:
       - enrollment-data:/var/lib/postgresql/data
     networks:
-      - university-network
+      - enrollment-db-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Microservices
   student-service:
     build:
-      context: ./services/student-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/student-service/Dockerfile
     container_name: student-service
-    ports:
-      - "3001:3001"
     environment:
       PORT: 3001
       DATABASE_URL: postgresql://postgres:postgres@student-db:5432/student_db
       NODE_ENV: production
     depends_on:
-      - student-db
+      student-db:
+        condition: service_healthy
     networks:
-      - university-network
+      - backend-network
+      - student-db-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   course-service:
     build:
-      context: ./services/course-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/course-service/Dockerfile
     container_name: course-service
-    ports:
-      - "3002:3002"
     environment:
       PORT: 3002
       DATABASE_URL: postgresql://postgres:postgres@course-db:5432/course_db
       NODE_ENV: production
     depends_on:
-      - course-db
+      course-db:
+        condition: service_healthy
     networks:
-      - university-network
+      - backend-network
+      - course-db-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   faculty-service:
     build:
-      context: ./services/faculty-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/faculty-service/Dockerfile
     container_name: faculty-service
-    ports:
-      - "3003:3003"
     environment:
       PORT: 3003
       DATABASE_URL: postgresql://postgres:postgres@faculty-db:5432/faculty_db
       NODE_ENV: production
     depends_on:
-      - faculty-db
+      faculty-db:
+        condition: service_healthy
     networks:
-      - university-network
+      - backend-network
+      - faculty-db-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   enrollment-service:
     build:
-      context: ./services/enrollment-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/enrollment-service/Dockerfile
     container_name: enrollment-service
-    ports:
-      - "3004:3004"
     environment:
       PORT: 3004
       DATABASE_URL: postgresql://postgres:postgres@enrollment-db:5432/enrollment_db
@@ -124,12 +242,59 @@ services:
       COURSE_SERVICE_URL: http://course-service:3002
       NODE_ENV: production
     depends_on:
-      - enrollment-db
-      - student-service
-      - course-service
+      enrollment-db:
+        condition: service_healthy
+      student-service:
+        condition: service_healthy
+      course-service:
+        condition: service_healthy
     networks:
-      - university-network
+      - backend-network
+      - enrollment-db-network
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_STUDENT_API_URL: http://localhost:8000/api
+        NEXT_PUBLIC_COURSE_API_URL: http://localhost:8000/api
+        NEXT_PUBLIC_FACULTY_API_URL: http://localhost:8000/api
+        NEXT_PUBLIC_ENROLLMENT_API_URL: http://localhost:8000/api
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - api-gateway
+    networks:
+      - frontend-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   student-data:
@@ -138,5 +303,25 @@ volumes:
   enrollment-data:
 
 networks:
-  university-network:
+  frontend-network:
     driver: bridge
+  
+  backend-network:
+    driver: bridge
+    internal: true
+  
+  student-db-network:
+    driver: bridge
+    internal: true
+  
+  course-db-network:
+    driver: bridge
+    internal: true
+  
+  faculty-db-network:
+    driver: bridge
+    internal: true
+  
+  enrollment-db-network:
+    driver: bridge
+    internal: true

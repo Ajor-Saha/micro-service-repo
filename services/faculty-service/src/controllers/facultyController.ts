@@ -39,7 +39,12 @@ export const createFaculty = async (req: Request, res: Response, next: NextFunct
   try {
     const validatedData = createFacultySchema.parse(req.body);
 
-    const newFaculty = await db.insert(faculty).values(validatedData).returning();
+    const insertData = {
+      ...validatedData,
+      hireDate: validatedData.hireDate ? new Date(validatedData.hireDate) : undefined
+    };
+
+    const newFaculty = await db.insert(faculty).values(insertData).returning();
 
     res.status(201).json({
       status: 'success',
@@ -55,9 +60,15 @@ export const updateFaculty = async (req: Request, res: Response, next: NextFunct
     const { id } = req.params;
     const validatedData = updateFacultySchema.parse(req.body);
 
+    const updateData = {
+      ...validatedData,
+      hireDate: validatedData.hireDate ? new Date(validatedData.hireDate) : undefined,
+      updatedAt: new Date()
+    };
+
     const updatedFaculty = await db
       .update(faculty)
-      .set({ ...validatedData, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(faculty.id, parseInt(id)))
       .returning();
 
