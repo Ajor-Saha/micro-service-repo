@@ -295,8 +295,8 @@ jobs:
       - name: 🧪 Run API CRUD Tests
         run: |
           echo "Running comprehensive API tests..."
-          chmod +x test-api.sh
-          bash test-api.sh || echo "⚠️ Some API tests failed (non-blocking)"
+          chmod +x scripts/test-api.sh
+          bash scripts/test-api.sh || echo "⚠️ Some API tests failed (non-blocking)"
 
       - name: 📊 Show service logs on failure
         if: failure()
