@@ -6,20 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Enrollment, Student, Course } from '@/types';
+import { Enrollment, Student, Course, CreateEnrollmentData, UpdateEnrollmentData } from '@/types';
 import { studentApi, courseApi } from '@/lib/api';
+
+type EnrollmentFormData = CreateEnrollmentData | UpdateEnrollmentData;
 
 interface EnrollmentFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: {
-    studentId?: number;
-    courseId?: number;
-    status: string;
-    semester?: string;
-    academicYear?: string;
-    grade?: string;
-  }) => Promise<void>;
+  onSubmit: (data: EnrollmentFormData) => Promise<void>;
   enrollment?: Enrollment;
   mode: 'create' | 'edit';
 }

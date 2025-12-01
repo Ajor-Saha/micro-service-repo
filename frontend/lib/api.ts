@@ -30,13 +30,19 @@ type FacultyFormData = {
   hireDate: string;
 };
 
-type EnrollmentFormData = {
-  studentId?: number;
-  courseId?: number;
+type CreateEnrollmentData = {
+  studentId: number;
+  courseId: number;
   status: string;
   semester?: string;
   academicYear?: string;
+};
+
+type UpdateEnrollmentData = {
+  status?: string;
   grade?: string;
+  semester?: string;
+  academicYear?: string;
 };
 
 const API_URLS = {
@@ -197,7 +203,7 @@ export const enrollmentApi = {
     return res.json();
   },
   
-  create: async (data: EnrollmentFormData) => {
+  create: async (data: CreateEnrollmentData) => {
     const res = await fetch(`${API_URLS.enrollment}/enrollments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -207,7 +213,7 @@ export const enrollmentApi = {
     return res.json();
   },
   
-  update: async (id: number, data: EnrollmentFormData) => {
+  update: async (id: number, data: UpdateEnrollmentData) => {
     const res = await fetch(`${API_URLS.enrollment}/enrollments/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

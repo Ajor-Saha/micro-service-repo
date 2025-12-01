@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { enrollmentApi, studentApi, courseApi } from '@/lib/api';
-import { Enrollment, Student, Course } from '@/types';
+import { Enrollment, Student, Course, CreateEnrollmentData, UpdateEnrollmentData } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent } from '@/components/ui/card';
@@ -69,7 +69,7 @@ export default function EnrollmentsPage() {
     }
   };
 
-  const handleCreate = async (data: Omit<Enrollment, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleCreate = async (data: CreateEnrollmentData) => {
     try {
       await enrollmentApi.create(data);
       fetchData();
@@ -85,7 +85,7 @@ export default function EnrollmentsPage() {
     setIsFormOpen(true);
   };
 
-  const handleUpdate = async (data: Partial<Enrollment>) => {
+  const handleUpdate = async (data: UpdateEnrollmentData) => {
     if (!editingEnrollment) return;
     try {
       await enrollmentApi.update(editingEnrollment.id, data);
@@ -258,7 +258,13 @@ export default function EnrollmentsPage() {
         <EnrollmentForm
           open={isFormOpen}
           onOpenChange={setIsFormOpen}
-          onSubmit={formMode === 'create' ? handleCreate : handleUpdate}
+          onSubmit={async (data) => {
+            if (formMode === 'create') {
+              await handleCreate(data as CreateEnrollmentData);
+            } else {
+              await handleUpdate(data as UpdateEnrollmentData);
+            }
+          }}
           enrollment={editingEnrollment}
           mode={formMode}
         />

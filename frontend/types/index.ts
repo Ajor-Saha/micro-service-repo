@@ -52,3 +52,18 @@ export interface Enrollment {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreateEnrollmentData {
+  studentId: number;
+  courseId: number;
+  status: string;
+  semester?: string;
+  academicYear?: string;
+}
+
+export interface UpdateEnrollmentData {
+  status?: string;
+  grade?: string;
+  semester?: string;
+  academicYear?: string;
+}
