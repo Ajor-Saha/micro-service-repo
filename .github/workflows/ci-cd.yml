@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository_owner }}/university-microservices
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   # ========================================
@@ -113,6 +113,9 @@ jobs:
     name: Build Docker Images
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend]
+    permissions:
+      contents: read
+      packages: write
     
     strategy:
       fail-fast: false
@@ -156,7 +159,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service.name }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service.name }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -394,5 +397,5 @@ jobs:
           echo "✅ Tests: ${{ needs.integration-test.result }}"
           echo "✅ Security: ${{ needs.security-scan.result }}"
           echo ""
-          echo "🐳 Docker images pushed to: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}"
+          echo "🐳 Docker images pushed to: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-*"
           echo "========================================="
