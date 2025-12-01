@@ -197,14 +197,14 @@ jobs:
       - name: 🐳 Start services with Docker Compose
         run: |
           echo "🚀 Starting all services..."
-          docker-compose up -d
+          docker compose up -d
           echo "⏳ Waiting for services to be healthy..."
           sleep 45
 
       - name: 🔍 Check service health
         run: |
           echo "Checking container status..."
-          docker-compose ps
+          docker compose ps
           
           echo ""
           echo "Checking container health..."
@@ -258,31 +258,31 @@ jobs:
           echo "========================================="
           echo "📋 API Gateway Logs"
           echo "========================================="
-          docker-compose logs api-gateway
+          docker compose logs api-gateway
           
           echo ""
           echo "========================================="
           echo "📋 Student Service Logs"
           echo "========================================="
-          docker-compose logs student-service
+          docker compose logs student-service
           
           echo ""
           echo "========================================="
           echo "📋 Course Service Logs"
           echo "========================================="
-          docker-compose logs course-service
+          docker compose logs course-service
           
           echo ""
           echo "========================================="
           echo "📋 Frontend Logs"
           echo "========================================="
-          docker-compose logs frontend
+          docker compose logs frontend
 
       - name: 🧹 Cleanup
         if: always()
         run: |
           echo "Stopping services..."
-          docker-compose down -v
+          docker compose down -v
           echo "✅ Cleanup complete"
 
   # ========================================
@@ -344,7 +344,7 @@ jobs:
 
       - name: 🐳 Start services
         run: |
-          docker-compose up -d
+          docker compose up -d
           sleep 45
           echo "Services started for performance testing"
 
@@ -371,7 +371,7 @@ jobs:
 
       - name: 🧹 Cleanup
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v
 
   # ========================================
   # Job 7: Deploy Notification
