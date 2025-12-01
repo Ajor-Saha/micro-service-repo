@@ -37,27 +37,21 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: |
-            shared/package-lock.json
-            services/${{ matrix.service }}/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: 📦 Install shared dependencies
+      - name: 📦 Install all workspace dependencies
         run: |
-          cd shared
           npm ci
-          npm run build
+          echo "✅ Workspace dependencies installed"
+
+      - name: 🔨 Build shared package
+        run: |
+          npm run build --workspace=shared
           echo "✅ Shared package built successfully"
-
-      - name: 📦 Install service dependencies
-        run: |
-          cd services/${{ matrix.service }}
-          npm ci
-          echo "✅ Dependencies installed for ${{ matrix.service }}"
 
       - name: 🔨 Build service
         run: |
-          cd services/${{ matrix.service }}
-          npm run build
+          npm run build --workspace=services/${{ matrix.service }}
           echo "✅ ${{ matrix.service }} built successfully"
 
       - name: 📤 Upload build artifacts
@@ -83,12 +77,11 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: 'frontend/package-lock.json'
 
       - name: 📦 Install dependencies
-        run: |
-          cd frontend
-          npm ci
+        working-directory: frontend
+        run: npm ci
 
       - name: 🔍 Lint code
         run: |
@@ -319,16 +312,19 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-      - name: 🔍 Run npm audit on services
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 🔍 Run npm audit on workspace
         run: |
-          echo "Running npm audit on all services..."
+          echo "Running npm audit on root workspace..."
+          npm audit --audit-level=moderate || true
           
-          cd shared && npm audit --audit-level=moderate || true
-          cd ../services/student-service && npm audit --audit-level=moderate || true
-          cd ../course-service && npm audit --audit-level=moderate || true
-          cd ../faculty-service && npm audit --audit-level=moderate || true
-          cd ../enrollment-service && npm audit --audit-level=moderate || true
-          cd ../../frontend && npm audit --audit-level=moderate || true
+          echo ""
+          echo "Running npm audit on frontend..."
+          cd frontend && npm audit --audit-level=moderate || true
 
   # ========================================
   # Job 6: Performance Testing
