@@ -226,9 +226,20 @@ jobs:
           docker ps --format "table {{.Names}}\t{{.Status}}"
           
           echo ""
-          echo "Checking service logs for errors..."
-          docker compose logs student-service | tail -20
-          docker compose logs course-service | tail -20
+          echo "==================== Database Logs ===================="
+          docker compose logs student-db | tail -30
+          
+          echo ""
+          echo "==================== Student Service Logs ===================="
+          docker compose logs student-service
+          
+          echo ""
+          echo "==================== Course Service Logs ===================="
+          docker compose logs course-service | tail -30
+          
+          echo ""
+          echo "==================== API Gateway Logs ===================="
+          docker compose logs api-gateway | tail -30
 
       - name: ✅ Test API Gateway
         run: |
@@ -236,10 +247,25 @@ jobs:
           curl -f http://localhost:8000/health || (echo "❌ API Gateway health check failed" && exit 1)
           echo "✅ API Gateway is healthy"
 
-      - name: ✅ Test Student Service
+      - name: ✅ Test Student Service (with detailed error)
         run: |
           echo "Testing Student Service..."
-          curl -f http://localhost:8000/api/students || (echo "❌ Student Service test failed" && exit 1)
+          response=$(curl -s -w "\n%{http_code}" http://localhost:8000/api/students)
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+          
+          echo "HTTP Status: $http_code"
+          echo "Response Body: $body"
+          
+          if [ "$http_code" != "200" ]; then
+            echo "❌ Student Service test failed"
+            echo "Checking if service is responding at all..."
+            curl -v http://localhost:3001/health || true
+            echo ""
+            echo "Recent service logs:"
+            docker compose logs student-service --tail 50
+            exit 1
+          fi
           echo "✅ Student Service is working"
 
       - name: ✅ Test Course Service

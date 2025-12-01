@@ -42,10 +42,15 @@ COPY --from=service-builder --chown=nodejs:nodejs /app/service/dist ./dist
 COPY --from=service-builder --chown=nodejs:nodejs /app/service/node_modules ./node_modules
 COPY --from=service-builder --chown=nodejs:nodejs /app/service/package*.json ./
 
+# Copy drizzle config and entrypoint
+COPY services/enrollment-service/drizzle.config.ts ./
+COPY services/enrollment-service/docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 # Switch to non-root user
 USER nodejs
 
 ENV NODE_ENV=production
 EXPOSE 3004
 
-CMD ["node", "dist/app.js"]
+CMD ["./docker-entrypoint.sh"]
