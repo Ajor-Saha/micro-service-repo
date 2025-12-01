@@ -69,7 +69,7 @@ export default function EnrollmentsPage() {
     }
   };
 
-  const handleCreate = async (data: any) => {
+  const handleCreate = async (data: Omit<Enrollment, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
       await enrollmentApi.create(data);
       fetchData();
@@ -85,7 +85,7 @@ export default function EnrollmentsPage() {
     setIsFormOpen(true);
   };
 
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (data: Partial<Enrollment>) => {
     if (!editingEnrollment) return;
     try {
       await enrollmentApi.update(editingEnrollment.id, data);
