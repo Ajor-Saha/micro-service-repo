@@ -198,8 +198,23 @@ jobs:
         run: |
           echo "🚀 Starting all services..."
           docker compose up -d
-          echo "⏳ Waiting for services to be healthy..."
-          sleep 45
+          echo "⏳ Waiting for databases to be healthy..."
+          
+          # Wait for databases (max 60 seconds)
+          for i in {1..12}; do
+            if docker compose ps | grep -q "student-db.*healthy" && \
+               docker compose ps | grep -q "course-db.*healthy" && \
+               docker compose ps | grep -q "faculty-db.*healthy" && \
+               docker compose ps | grep -q "enrollment-db.*healthy"; then
+              echo "✅ All databases are healthy"
+              break
+            fi
+            echo "Waiting for databases... ($i/12)"
+            sleep 5
+          done
+          
+          echo "⏳ Waiting for services to be ready..."
+          sleep 30
 
       - name: 🔍 Check service health
         run: |
@@ -209,6 +224,11 @@ jobs:
           echo ""
           echo "Checking container health..."
           docker ps --format "table {{.Names}}\t{{.Status}}"
+          
+          echo ""
+          echo "Checking service logs for errors..."
+          docker compose logs student-service | tail -20
+          docker compose logs course-service | tail -20
 
       - name: ✅ Test API Gateway
         run: |
