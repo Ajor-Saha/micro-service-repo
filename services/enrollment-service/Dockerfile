@@ -42,6 +42,9 @@ COPY --from=service-builder --chown=nodejs:nodejs /app/service/dist ./dist
 COPY --from=service-builder --chown=nodejs:nodejs /app/service/node_modules ./node_modules
 COPY --from=service-builder --chown=nodejs:nodejs /app/service/package*.json ./
 
+# Copy schema files for migrations
+COPY --chown=nodejs:nodejs services/enrollment-service/src/db ./src/db
+
 # Copy drizzle config and entrypoint
 COPY services/enrollment-service/drizzle.config.ts ./
 COPY services/enrollment-service/docker-entrypoint.sh ./
