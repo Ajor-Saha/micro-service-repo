@@ -45,11 +45,16 @@ type UpdateEnrollmentData = {
   academicYear?: string;
 };
 
+// Direct API calls to the API Gateway
+// When running locally with port-forward, use localhost:9000
+// When deployed, access via the exposed service
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9000/api';
+
 const API_URLS = {
-  student: process.env.NEXT_PUBLIC_STUDENT_API_URL || 'http://localhost:3001/api',
-  course: process.env.NEXT_PUBLIC_COURSE_API_URL || 'http://localhost:3002/api',
-  faculty: process.env.NEXT_PUBLIC_FACULTY_API_URL || 'http://localhost:3003/api',
-  enrollment: process.env.NEXT_PUBLIC_ENROLLMENT_API_URL || 'http://localhost:3004/api',
+  student: API_BASE_URL,
+  course: API_BASE_URL,
+  faculty: API_BASE_URL,
+  enrollment: API_BASE_URL,
 };
 
 export const studentApi = {

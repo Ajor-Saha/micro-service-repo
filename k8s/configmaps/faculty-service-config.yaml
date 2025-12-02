@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: faculty-service-config
+  namespace: university
+data:
+  PORT: "3003"
+  NODE_ENV: "production"
+  DATABASE_URL: "postgresql://postgres:postgres@faculty-db:5432/faculty_db"
